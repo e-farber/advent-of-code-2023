@@ -109,9 +109,8 @@ size_t get_amount(const std::string::iterator &iterator) {
 
 bool is_valid(const size_t red, const size_t green, const size_t blue) {
     return (
-        red + blue + green <= 39 &&
-        red   <= 12              &&
-        green <= 13              &&
+        red   <= 12 &&
+        green <= 13 &&
         blue  <= 14
     );
 }
