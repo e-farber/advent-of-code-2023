@@ -34,12 +34,23 @@ struct coords {
     size_t row {0};
     size_t col {0};
 
-    coords() = default;
     coords(size_t row, size_t col) : row {row}, col {col} {};
     bool operator==(const coords &other) const {return (row == other.row && col == other.col); }
 };
 
-bool move_along(const square_map &grid, coords &current_pos, coords &old_pos);
+/**
+ * Moves current position along grid in accordance to pipe directions.
+ * @param grid        Contains arrangement of pipes.
+ * @param current_pos Current position on grid.
+ * @param old_pos     current_pos prior to being changed by this function. Relevant for movement direction.
+ * @param offset      Details what happens when current_pos == 'S', by giving instructions which way to move.
+*/
+bool move_along(
+    const square_map &grid,
+    coords &current_pos,
+    coords &old_pos,
+    const std::pair<int, int> &offset
+);
 
 
 int main() {
@@ -70,30 +81,23 @@ int main() {
     
     offset_vec offset_values {{0, 1}, {-1, 0}, {0, -1}, {1, 0}};
     for (auto &offset_val : offset_values) {
-        if (result != 0) {
-            break;
-        }
 
-        bool passed_S {false};
-        coords old_pos {
-            start_pos.row,
-            start_pos.col
-        };
+        coords old_pos;
+        coords current_pos {start_pos};
         coords offset_start {
             start_pos.row + offset_val.first,
             start_pos.col + offset_val.second
         };
-        coords current_pos {offset_start};
+        bool passed_S {false};
 
-        size_t steps {1};
-        while (move_along(grid, current_pos, old_pos)) {
+        size_t steps {0};
+        while (move_along(grid, current_pos, old_pos, offset_val)) {
             ++steps;
             if (grid[current_pos.row][current_pos.col] == 'S') {
                 passed_S = true;
             }
-
             if (passed_S && current_pos == offset_start) {
-                result = steps / 2;
+                result = std::max(steps / 2, result);
                 break;
             }
         }
@@ -105,7 +109,12 @@ int main() {
 
 
 
-bool move_along(const square_map &grid, coords &current_pos, coords &old_pos) {
+bool move_along(
+    const square_map &grid,
+    coords &current_pos,
+    coords &old_pos,
+    const std::pair<int, int> &offset
+    ) {
     coords temp = current_pos;
     switch (grid[current_pos.row][current_pos.col]) {
         case '|':
@@ -139,7 +148,8 @@ bool move_along(const square_map &grid, coords &current_pos, coords &old_pos) {
             else { ++current_pos.col; }
             break;
         case 'S':
-            ++current_pos.row;
+            current_pos.row += offset.first;
+            current_pos.col += offset.second;
             break;
         default:
             return false;
